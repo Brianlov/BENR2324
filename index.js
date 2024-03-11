@@ -1,6 +1,6 @@
 const express=require('express')
 const app = express()
-const port=precess.env.PORT||8080;
+const port=precess.env.PORT||3030;
 
 app.use(express.json())
 
