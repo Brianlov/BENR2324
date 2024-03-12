@@ -4,8 +4,8 @@ const port=process.env.PORT||3000;
 
 app.use(express.json())
 
-app.getMaxListeners('/', (req, res) => {
-    res.send('Hello World')
+app.get('/', (req, res) => {
+    res.send('Hello World!!')
 })
 
 app.listen(port,()=>{
