@@ -1,15 +1,32 @@
-const express=require('express')
+const express = require('express')
 const app = express()
-const port=process.env.PORT||3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json())
 
+//'/'define the endpoint;req=request;res=response
+app.get('/hello', async (req, res) => {
+  res.send('Hello world !')
+
+
+
+})
 app.get('/', (req, res) => {
-    res.send('Hello world !')
+  res.send('Kaki Saigoo!')
 })
 
-app.listen(port,()=>{
-    console.log(`Example app listening on port ${port}`)
+app.get('/memberss', async (req, res) => {
+  let members = await client.db("Nogizaka46").collection("member").find().toArray()
+  res.send(members)
+  console.log(members)
+})
+
+// app.post('/hello', (req, res) =>{
+
+// })
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
 })
 
 
@@ -33,12 +50,12 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
     //await client.db("admin").command({ ping: 1 });
-   /*let result=await client.db("Nogizaka46").collection("member").insertOne({
-      name:"Himura Yuuki",
-      age:24,
-      generation:"3rd"
-    })
-    console.log(result)*/
+    /*let result=await client.db("Nogizaka46").collection("member").insertOne({
+       name:"Himura Yuuki",
+       age:24,
+       generation:"3rd"
+     })
+     console.log(result)*/
     /*let member=await client.db("Nogizaka46").collection( "member" ).find(
       {
         generation:"4th"
@@ -55,11 +72,11 @@ async function run() {
     }
     )
     console.log(member_new)*/
-    let delete_acc= await client.db("Nogizaka46").collection("member").deleteOne(
-      {
-        _id:new ObjectId("660b6d8c10a4acc2f6aa9b0e")
-      }
-    )
+    // let delete_acc = await client.db("Nogizaka46").collection("member").deleteOne(
+    //   {
+    //     _id: new ObjectId(" ")
+    //   }
+    // )
     console.log(delete_acc)
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
