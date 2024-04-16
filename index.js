@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const bcrypt = require('bcrypt');
 const port = process.env.PORT || 3000;
 
 app.use(express.json())
@@ -14,6 +15,99 @@ app.get('/hello', async (req, res) => {
 app.get('/', (req, res) => {
   res.send('Kaki Saigoo!')
 })
+//new user registration
+app.post('/users',async (req, res) => {
+  let Notnew = await client.db("new_nogi").collection("members").findOne(
+    {
+      username:req.body.username,
+
+    });
+    if(Notnew)
+    {
+    const hash = bcrypt.hashSync(req.body.password, 10);
+  //insertOne()=insert a single document into a collection
+  
+  let result = await client.db("new_nogi").collection("members").insertOne(
+    {
+    name: req.body.name,
+    password:hash,
+    username:req.body.username,
+    email:req.body.email
+ 
+  })
+console.log(req.body);
+console.log(result);
+res.send(result);
+  }
+  else
+  {
+    res.send("Username already exists").sendStatus(404);
+    console.log("Username already exists");
+  
+  }
+
+})
+//login
+app.post('/login', async (req, res) => {
+  //step 1 req.body.username ??
+  if(req.body.username != null && req.body.password != null )
+  {
+
+  //step 2
+  let user = await client.db("new_nogi").collection("members").findOne(
+    {
+      username:req.body.username,
+
+    });
+    if(user)//step 3
+    {
+      //user found,check whether password is correct
+      console.log(user);//found in database
+      if(bcrypt.compareSync(req.body.password, user.password))
+      {
+        //password is correct
+        res.send("Welcome "+user.username).sendStatus(200);
+        console.log("Login successful");
+        res.send({
+          username:user.username,
+          email:user.email,
+          password:user.password,
+          role:user.role,
+          id:user._id
+        })
+      } // true
+      else
+      {
+        res.send("Password is incorrect").sendStatus(404);
+        console.log("Password is incorrect");
+        //password is incorrect
+      }//false
+
+
+    }
+    else
+    { //user not found
+      res.status(404).send("User not found");
+      console.log("User not found");
+    }
+  }
+  else{
+    res.status(404).send("Username and password are required");
+  
+  }
+  
+})
+
+app.delete('/users',async (req, res) => {
+  console.log(req.body)
+  res.send('Hello ' + req.body.name)
+})
+app.patch('/users', async(req, res) => {
+  console.log(req.body)
+  res.send('Hello ' + req.body.name)
+})
+
+
 
 app.get('/memberss', async (req, res) => {
   let members = await client.db("Nogizaka46").collection("member").find().toArray()
@@ -23,7 +117,7 @@ app.get('/memberss', async (req, res) => {
 
 // app.post('/hello', (req, res) =>{
 
-// })
+// })*/
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
@@ -33,7 +127,7 @@ app.listen(port, () => {
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = "mongodb+srv://b022210122:nogizakabrian@benr2423brian1.xdst3gl.mongodb.net/?retryWrites=true&w=majority&appName=benr2423Brian1";
+const uri = "mongodb+srv://brian_nogizaka:20010808@cluster2.pwcr3rq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster2";
 
 // Create a MongoClient,communicate with mongodb with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -77,7 +171,7 @@ async function run() {
     //     _id: new ObjectId(" ")
     //   }
     // )
-    console.log(delete_acc)
+    //console.log(delete_acc)
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
