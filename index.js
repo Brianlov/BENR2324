@@ -16,93 +16,67 @@ app.get('/', (req, res) => {
   res.send('Kaki Saigoo!')
 })
 //new user registration
-app.post('/users',async (req, res) => {
-  let Notnew = await client.db("new_nogi").collection("members").findOne(
-    {
-      username:req.body.username,
-
-    });
-    if(Notnew)
-    {
-    const hash = bcrypt.hashSync(req.body.password, 10);
-  //insertOne()=insert a single document into a collection
-  
-  let result = await client.db("new_nogi").collection("members").insertOne(
-    {
-    name: req.body.name,
-    password:hash,
-    username:req.body.username,
-    email:req.body.email
- 
-  })
-console.log(req.body);
-console.log(result);
-res.send(result);
+app.post('/users', async (req, res) => {
+  let NotNew = await client.db("registers").collection("users").findOne({ username: req.body.username });
+  if (NotNew) {
+    res.status(404).send("Username already exists");
   }
-  else
-  {
-    res.send("Username already exists").sendStatus(404);
-    console.log("Username already exists");
-  
+  else {
+    const hash = bcrypt.hashSync(req.body.password, 10);
+    //insertOne()=insert a single document into a collection
+    let result = await client.db("registers").collection("users").insertOne(
+      {
+        username: req.body.username,
+        email: req.body.email,
+        password: hash
+
+      })
+    console.log(req.body);
+    res.send(result);
   }
 
 })
 //login
 app.post('/login', async (req, res) => {
   //step 1 req.body.username ??
-  if(req.body.username != null && req.body.password != null )
-  {
+  //ensure no empty for username and password
+  if (!req.body.username || !req.body.password) {
+    return res.status(400).send("Please enter both username and password");
+  }
+  else if (req.body.username != null && req.body.password != null) {
 
-  //step 2
-  let user = await client.db("new_nogi").collection("members").findOne(
-    {
-      username:req.body.username,
-
-    });
-    if(user)//step 3
+    //step 2
+    let user = await client.db("registers").collection("users").findOne({ username: req.body.username });
+    if (user)//step 3
     {
       //user found,check whether password is correct
       console.log(user);//found in database
-      if(bcrypt.compareSync(req.body.password, user.password))
-      {
+      if (bcrypt.compareSync(req.body.password, user.password)) {
         //password is correct
-        res.send("Welcome "+user.username).sendStatus(200);
-        console.log("Login successful");
-        res.send({
-          username:user.username,
-          email:user.email,
-          password:user.password,
-          role:user.role,
-          id:user._id
-        })
+        res.status(200).send({
+          message: "Welcome " + user.username,
+          username: user.username,
+          password: user.password,
+        });
       } // true
-      else
-      {
-        res.send("Password is incorrect").sendStatus(404);
+      else {
+        res.status(409).send("Password is incorrect");
         console.log("Password is incorrect");
         //password is incorrect
       }//false
-
-
     }
-    else
-    { //user not found
+    else { //user not found
       res.status(404).send("User not found");
       console.log("User not found");
     }
   }
-  else{
-    res.status(404).send("Username and password are required");
-  
-  }
-  
-})
+  })
 
-app.delete('/users',async (req, res) => {
+app.delete('/users', async (req, res) => {
   console.log(req.body)
   res.send('Hello ' + req.body.name)
 })
-app.patch('/users', async(req, res) => {
+app.patch('/users', async (req, res) => {
   console.log(req.body)
   res.send('Hello ' + req.body.name)
 })
