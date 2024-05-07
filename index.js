@@ -1,16 +1,65 @@
 const express = require('express')
 const app = express()
 const bcrypt = require('bcrypt');
+const food=require('./food.js');
+var jwt = require('jsonwebtoken');
 const port = process.env.PORT || 3000;
 
 app.use(express.json())
+// app.use('/food',food)
+
+// app.get('/inc',async(req,res)=>{
+//   let result=await client.db("items").collection("item").updateOne(
+//     {name:{$eq:"Nasi Lemak"}},
+//     {
+//       $inc:{
+//         price:10
+//       }
+//     }
+    
+//   )
+//   console.log(result)
+//   res.send(result)
+//   })
+
+//   app.get('/max',async(req,res)=>{
+//     let result=await client.db("items").collection("item").updateOne(
+//       {name:{$eq:"Teh Tarik"}},
+//       {
+//         $max:{
+//           quantity:100
+//         }
+//       }
+      
+//     )
+//     console.log(result)
+//     res.send(result)
+//     })
+// app.get('/min',async(req,res)=>{
+//   let result=await client.db("items").collection("item").updateOne(
+//     {name:{$eq:"Teh Tarik"}},
+//     {
+//       $min:{
+//         quantity:0
+//       }
+//     }
+    
+//   )
+//   console.log(result)
+//   res.send(result)
+//   })
+
+//   app.get('/push',async(req,res)=>{
+//     let result=await client.db("items").collection("item").updateOne(
+//       {name:{$eq:"Teh Tarik"}},
+//       {$push:{ingredients:{type:"kacang",amount:20}}})
+//     console.log(result)
+//     res.send(result)
+//     })
 
 //'/'define the endpoint;req=request;res=response
 app.get('/hello', async (req, res) => {
   res.send('Hello world !')
-
-
-
 })
 app.get('/', (req, res) => {
   res.send('Kaki Saigoo!')
@@ -51,13 +100,17 @@ app.post('/login', async (req, res) => {
     {
       //user found,check whether password is correct
       console.log(user);//found in database
-      if (bcrypt.compareSync(req.body.password, user.password)) {
+      if (bcrypt.compareSync(req.body.password, user.password)==true) {
         //password is correct
-        res.status(200).send({
-          message: "Welcome " + user.username,
-          username: user.username,
-          password: user.password,
-        });
+        // res.status(200).send({
+        //   message: "Welcome " + user.username,
+        //   username: user.username,
+        //   password: user.password,
+        // });
+                        //generate argument passkey
+        var token = jwt.sign({ _id: user._id, name:user.username}, 'nogizaka46password',{expiresIn:60});
+
+        res.send(token)
       } // true
       else {
         res.status(409).send("Password is incorrect");
@@ -70,6 +123,26 @@ app.post('/login', async (req, res) => {
       console.log("User not found");
     }
   }
+  });
+
+  app.get('/user/:id',async(req,res)=>{
+    let auth=req.headers.authorization
+    console.log(auth)
+    let authSplitted=auth.split(' ')
+    console.log(authSplitted)
+    let token=authSplitted[1]
+    console.log(token)
+    let decoded=jwt.verify(token,'nogizaka46password')
+    console.log(decoded)
+    //let token=(req.header.authorization.split('')[1])
+    let user = await client.db("registers").collection("users").findOne({ _id: new ObjectId(req.params.id) });
+    res.send(user);
+  })
+
+  app.get('/food', async (req, res) => {
+    let food = await client.db("Nogizaka46").collection("food").find().toArray()
+    res.send(food);
+    console.log(food);
   })
 
 app.delete('/users', async (req, res) => {
