@@ -108,8 +108,7 @@ app.post('/login', async (req, res) => {
         //   password: user.password,
         // });
                         //generate argument passkey
-        var token = jwt.sign({ _id: user._id, name:user.username}, 'nogizaka46password',{expiresIn:60});
-
+        var token = jwt.sign({ _id: user._id, name:user.username}, 'nogizaka46password',{expiresIn:60*60});
         res.send(token)
       } // true
       else {
@@ -125,18 +124,24 @@ app.post('/login', async (req, res) => {
   }
   });
 
-  app.get('/user/:id',async(req,res)=>{
-    let auth=req.headers.authorization
-    console.log(auth)
-    let authSplitted=auth.split(' ')
-    console.log(authSplitted)
-    let token=authSplitted[1]
-    console.log(token)
-    let decoded=jwt.verify(token,'nogizaka46password')
-    console.log(decoded)
+  app.get('/user/:id',verifyToken,async(req,res)=>{
+    // let auth=req.headers.authorization
+    // console.log(auth)
+    // let authSplitted=auth.split(' ')
+    // console.log(authSplitted)
+    // let token=authSplitted[1]
+    // console.log(token)
+    // let decoded=jwt.verify(token,'nogizaka46password')
+    // console.log(decoded)
+    if(req.identify._id !=req.params.id)
+      {
+        res.status(403).send("You are not authorized to view this user's information")
+      }
     //let token=(req.header.authorization.split('')[1])
+    else{
     let user = await client.db("registers").collection("users").findOne({ _id: new ObjectId(req.params.id) });
     res.send(user);
+    }
   })
 
   app.get('/food', async (req, res) => {
@@ -184,6 +189,25 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+function verifyToken(req,res,next)
+{
+  const authHeader=req.headers.authorization
+  const token=authHeader&&authHeader.split(' ')
+  if(token==null)
+  {
+    return res.sendStatus(401)
+  }
+  jwt.verify(token,'nogizaka46password',(err,decoded)=>{
+    console.log(err)
+    if(err)
+    {
+      return res.sendStatus(403)
+    }
+    req.identify=decoded
+    next()
+  })
+}
 
 async function run() {
   try {
