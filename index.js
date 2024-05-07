@@ -144,20 +144,40 @@ app.post('/login', async (req, res) => {
     }
   })
 
-  app.get('/food', async (req, res) => {
-    let food = await client.db("Nogizaka46").collection("food").find().toArray()
-    res.send(food);
-    console.log(food);
+  app.patch('/user/:id', verifyToken, async (req, res) => {
+    if (req.identify._id != req.params.id) {
+      res.send('Unauthorized')
+    } else {
+      let result = await client.db("maybank2u").collection("users").updateOne(
+        {
+          _id: new ObjectId(req.params.id)
+        },
+        {
+          $set: {
+            name: req.body.name
+          }
+        }
+      )
+      res.send(result)
+    }
   })
 
-app.delete('/users', async (req, res) => {
-  console.log(req.body)
-  res.send('Hello ' + req.body.name)
-})
-app.patch('/users', async (req, res) => {
-  console.log(req.body)
-  res.send('Hello ' + req.body.name)
-})
+  app.delete('/user/:id', verifyToken, async (req, res) => {
+    let result = await client.db("maybank2u").collection("users").deleteOne(
+      {
+        _id: new ObjectId(req.params.id)
+      }
+    )
+    res.send(result)
+  })
+  
+  app.post('/buy', async (req, res) => {
+    const token = req.headers.authorization.split(" ")[1]
+  
+    var decoded = jwt.verify(token, 'mysupersecretpasskey');
+    console.log(decoded)
+  })
+  
 
 
 
@@ -166,10 +186,6 @@ app.get('/memberss', async (req, res) => {
   res.send(members)
   console.log(members)
 })
-
-// app.post('/hello', (req, res) =>{
-
-// })*/
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
